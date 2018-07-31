@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
@@ -18,7 +20,7 @@ import java.util.List;
 public class CenterScalingPager extends HorizontalScrollView {
 
   private LinearLayout mLinearLayout;
-
+  private GestureDetector mGestureDetector;
   private List<Integer> mCenters = new ArrayList<>();
   private int mCenter;
 
@@ -33,6 +35,7 @@ public class CenterScalingPager extends HorizontalScrollView {
   public CenterScalingPager(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     setFillViewport(true);
+    mGestureDetector = new GestureDetector(context, new FlingListener());
     mLinearLayout = new LinearLayout(context);
     LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     addView(mLinearLayout, lp);
@@ -44,6 +47,18 @@ public class CenterScalingPager extends HorizontalScrollView {
       mLinearLayout.addView(cell);
     }
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
+  }
+
+  @Override
+  public boolean onTouchEvent(MotionEvent event) {
+    if (mGestureDetector.onTouchEvent(event)) {
+      return true;
+    }
+    if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+      Log.d("CSP", "onUp");
+      onUp();
+    }
+    return super.onTouchEvent(event);
   }
 
   @Override
@@ -131,4 +146,50 @@ public class CenterScalingPager extends HorizontalScrollView {
     }
   };
 
+  private void onUp() {
+    //findCenterMostChild();
+    if (mActive == null) {
+      return;
+    }
+    int center = mCenter + getScrollX();
+    int x = mActive.getLeft() + mActive.getWidth() / 2;
+    //Log.d("CSP", "before, x=" + getScrollX() + ", center=" + mCenter);
+    scrollTo(x, 0);
+    //Log.d("CSP", "after, x=" + getScrollX() + ", center=" + mCenter);
+  }
+
+  /*
+  private void fling(float velocityX, float velocityY) {
+    ChapterView currentChapterView = getCurrentChapterView();
+    currentChapterView.getSlider().stopScroller();
+    Scroller scroller = currentChapterView.getSlider().getScroller();
+    scroller.fling(currentChapterView.getScrollX(), 0, (int) velocityX, (int) velocityY, 0, currentChapterView.getContentSize(), 0, 0);
+    int originalX = scroller.getFinalX();
+    int initialPage = currentChapterView.getPage();
+    int destinationPage = (int) (originalX / getNormalizedWidth());
+    int pageDelta = Math.abs(initialPage - destinationPage);
+    if (pageDelta == 0) {
+      destinationPage = (int) (initialPage + Math.signum(velocityX));
+      pageDelta = 1;
+    }
+    currentChapterView.setPage(destinationPage);
+    double actualX = currentChapterView.getCurrentPagePosition();
+    int originalDistance = Math.abs(originalX - currentChapterView.getScrollX());
+    double actualDistance = Math.abs(actualX - currentChapterView.getScrollX());
+    double percent = actualDistance / originalDistance;
+    int duration = (int) (percent * scroller.getDuration());
+    int maximumPermissibleDuration = pageDelta * MAXIMUM_TRANSITION_DURATION_PER_PAGE;
+    duration = Math.min(duration, maximumPermissibleDuration);
+    scroller.extendDuration(duration);
+    scroller.setFinalX((int) actualX);
+    ViewCompat.postInvalidateOnAnimation(currentChapterView);
+  }
+  */
+
+  private class FlingListener extends GestureDetector.SimpleOnGestureListener {
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+      return super.onFling(e1, e2, velocityX, velocityY);
+    }
+  }
 }
