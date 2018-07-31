@@ -1,27 +1,32 @@
 package com.oreilly.oreillypager;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Scroller;
-import android.widget.TextView;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class CenterScalingPager extends HorizontalScrollView {
 
   private LinearLayout mLinearLayout;
   private GestureDetector mGestureDetector;
   private Scroller mScroller;
-  private TextView mActive;
+  private ImageView mActive;
   private int mCenter;
 
   public CenterScalingPager(@NonNull Context context) {
@@ -38,16 +43,27 @@ public class CenterScalingPager extends HorizontalScrollView {
     mScroller = new Scroller(context);
     mGestureDetector = new GestureDetector(context, new FlingListener());
     mLinearLayout = new LinearLayout(context);
+    mLinearLayout.setClipToPadding(false);
     LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     addView(mLinearLayout, lp);
-    for (int i = 0; i < 10; i++) {
-      TextView cell = new TextView(context);
-      cell.setPadding(100,100,100,100);
-      cell.setTextSize(72);
-      cell.setText(String.valueOf(i));
-      mLinearLayout.addView(cell);
+    LayoutInflater inflater = LayoutInflater.from(context);
+    for (int i = 1; i < 10; i++) {
+      ImageView imageView = (ImageView) inflater.inflate(R.layout.cell_horizontal_pager, mLinearLayout, false);
+      Bitmap bitmap = getBitmapFromAssets(i + ".jpg");
+      imageView.setImageBitmap(bitmap);
+      mLinearLayout.addView(imageView);
     }
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
+  }
+
+  private Bitmap getBitmapFromAssets(String name) {
+    try {
+      InputStream inputStream = getContext().getAssets().open(name);
+      return BitmapFactory.decodeStream(inputStream);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   @Override
@@ -111,7 +127,6 @@ public class CenterScalingPager extends HorizontalScrollView {
     if (mActive == null) {
       return;
     }
-    mActive.setTextColor(Color.GRAY);
     mActive.setScaleX(1);
     mActive.setScaleY(1);
   }
@@ -120,21 +135,36 @@ public class CenterScalingPager extends HorizontalScrollView {
     if (mActive == null) {
       return;
     }
+    int width = mActive.getMeasuredWidth();
     int center = mCenter + getScrollX();
-    float half = mActive.getMeasuredWidth() * 0.5f;
+    float half = width * 0.5f;
     float middle = mActive.getLeft() + half;
     float distance = Math.abs(middle - center);
     float scale = 1 + (1 - (distance / half));
     mActive.setScaleX(scale);
     mActive.setScaleY(scale);
+    mActive.bringToFront();
+    float wider = (width * scale) - width;
+    float widerHalf = wider * 0.5f;
+    boolean isOnRightOfActive = false;
+    // TODO: infinite loop!
+    for (int i = 0; i < mLinearLayout.getChildCount(); i++) {
+      View child = mLinearLayout.getChildAt(i);
+      if (child == mActive) {
+        isOnRightOfActive = true;
+        continue;
+      }
+      float offset = isOnRightOfActive ? widerHalf : -widerHalf;
+      child.setTranslationX(offset);
+    }
   }
 
-  private TextView findCenterMostChild() {
+  private ImageView findCenterMostChild() {
     int center = mCenter + getScrollX();
     for (int i = 0; i < mLinearLayout.getChildCount(); i++) {
       View child = mLinearLayout.getChildAt(i);
       if (child.getLeft() < center && child.getRight() > center) {
-        return (TextView) child;
+        return (ImageView) child;
       }
     }
     return null;
