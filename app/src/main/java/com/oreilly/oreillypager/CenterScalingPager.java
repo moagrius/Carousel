@@ -38,7 +38,7 @@ public class CenterScalingPager extends HorizontalScrollView {
     addView(mLinearLayout, lp);
     for (int i = 0; i < 10; i++) {
       TextView cell = new TextView(context);
-      cell.setPadding(20,20,20,20);
+      cell.setPadding(100,100,100,100);
       cell.setTextSize(72);
       cell.setText(String.valueOf(i));
       mLinearLayout.addView(cell);
@@ -55,16 +55,34 @@ public class CenterScalingPager extends HorizontalScrollView {
   @Override
   protected void onScrollChanged(int l, int t, int oldl, int oldt) {
     super.onScrollChanged(l, t, oldl, oldt);
-    if (mLastClosest != null) {
-      mLastClosest.setTextColor(Color.BLACK);
-    }
-    mLastClosest = findCenterMostChild();
-    if (mLastClosest != null) {
-      mLastClosest.setTextColor(Color.RED);
-    }
+    resetLastActiveChild();
+    mActive = findCenterMostChild();
+    decorateActiveChild();
   }
 
-  private TextView mLastClosest = null;
+  private void resetLastActiveChild() {
+    if (mActive == null) {
+      return;
+    }
+    mActive.setTextColor(Color.GRAY);
+    mActive.setScaleX(1);
+    mActive.setScaleY(1);
+  }
+
+  private void decorateActiveChild() {
+    if (mActive == null) {
+      return;
+    }
+    int center = mCenter + getScrollX();
+    float half = mActive.getMeasuredWidth() * 0.5f;
+    float middle = mActive.getLeft() + half;
+    float distance = Math.abs(middle - center);
+    float scale = 1 + (1 - (distance / half));
+    mActive.setScaleX(scale);
+    mActive.setScaleY(scale);
+  }
+
+  private TextView mActive = null;
   private TextView findCenterMostChild() {
     int center = mCenter + getScrollX();
     Log.d("CSP", "offset center: " + center);
@@ -73,12 +91,6 @@ public class CenterScalingPager extends HorizontalScrollView {
       Log.d("CSP", "i=" + i + ", left=" + child.getLeft() + ", right=" + child.getRight());
       if (child.getLeft() < center && child.getRight() > center) {
         // TODO: how far from center
-        float half = child.getMeasuredWidth() * 0.5f;
-        float middle = child.getLeft() + half;
-        float distance = Math.abs(middle - center);
-        float scale = 1 + (distance / half);
-        child.setScaleX(scale);
-        child.setScaleY(scale);
         return (TextView) child;
       }
     }
