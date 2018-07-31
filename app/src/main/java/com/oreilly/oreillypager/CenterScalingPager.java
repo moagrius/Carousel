@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -12,16 +13,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.Scroller;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CenterScalingPager extends HorizontalScrollView {
 
   private LinearLayout mLinearLayout;
   private GestureDetector mGestureDetector;
-  private List<Integer> mCenters = new ArrayList<>();
+  private Scroller mScroller;
+  private TextView mActive;
   private int mCenter;
 
   public CenterScalingPager(@NonNull Context context) {
@@ -35,6 +35,7 @@ public class CenterScalingPager extends HorizontalScrollView {
   public CenterScalingPager(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     setFillViewport(true);
+    mScroller = new Scroller(context);
     mGestureDetector = new GestureDetector(context, new FlingListener());
     mLinearLayout = new LinearLayout(context);
     LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -54,9 +55,9 @@ public class CenterScalingPager extends HorizontalScrollView {
     if (mGestureDetector.onTouchEvent(event)) {
       return true;
     }
-    if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-      Log.d("CSP", "onUp");
-      onUp();
+    int action = event.getActionMasked();
+    if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+      snapToActive();
     }
     return super.onTouchEvent(event);
   }
@@ -68,8 +69,39 @@ public class CenterScalingPager extends HorizontalScrollView {
   }
 
   @Override
+  protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    super.onLayout(changed, l, t, r, b);
+    updateActiveChild();
+  }
+
+  @Override
   protected void onScrollChanged(int l, int t, int oldl, int oldt) {
     super.onScrollChanged(l, t, oldl, oldt);
+    updateActiveChild();
+  }
+
+  @Override
+  public void computeScroll() {
+    if (mScroller.computeScrollOffset()) {
+      scrollTo(mScroller.getCurrX(), 0);
+      if (!mScroller.isFinished()) {
+        ViewCompat.postInvalidateOnAnimation(this);
+      }
+    }
+  }
+
+  private void slideTo(int x) {
+    if (mActive == null) {
+      return;
+    }
+    int delta = x - getScrollX();
+    float distance = Math.abs(delta);
+    // go 1px per ms
+    mScroller.startScroll(getScrollX(), 0, delta, 0, (int) distance);
+    ViewCompat.postInvalidateOnAnimation(this);
+  }
+
+  private void updateActiveChild() {
     resetLastActiveChild();
     mActive = findCenterMostChild();
     decorateActiveChild();
@@ -97,38 +129,15 @@ public class CenterScalingPager extends HorizontalScrollView {
     mActive.setScaleY(scale);
   }
 
-  private TextView mActive = null;
   private TextView findCenterMostChild() {
     int center = mCenter + getScrollX();
-    Log.d("CSP", "offset center: " + center);
     for (int i = 0; i < mLinearLayout.getChildCount(); i++) {
       View child = mLinearLayout.getChildAt(i);
-      Log.d("CSP", "i=" + i + ", left=" + child.getLeft() + ", right=" + child.getRight());
       if (child.getLeft() < center && child.getRight() > center) {
-        // TODO: how far from center
         return (TextView) child;
       }
     }
     return null;
-  }
-
-  private int getChildCenter(View view) {
-    return view.getLeft() + (view.getMeasuredWidth() / 2);
-  }
-
-  private void populateCenters() {
-    for (int i = 0; i < mLinearLayout.getChildCount(); i++) {
-      View child = mLinearLayout.getChildAt(i);
-      setCenterPosition(i, child.getLeft() + (child.getWidth() / 2));
-    }
-  }
-
-  private void setCenterPosition(int index, int position) {
-    if (mCenters.size() >= index) {
-      mCenters.add(position);
-    } else {
-      mCenters.set(index, position);
-    }
   }
 
   private View.OnLayoutChangeListener mOnLayoutChangeListener = new View.OnLayoutChangeListener() {
@@ -142,54 +151,57 @@ public class CenterScalingPager extends HorizontalScrollView {
       int paddingLeft = mCenter - (firstChild.getWidth() / 2);
       int paddingRight = mCenter - (lastChild.getWidth() / 2);
       mLinearLayout.setPadding(paddingLeft, 0, paddingRight, 0);
-      populateCenters();
     }
   };
 
-  private void onUp() {
-    //findCenterMostChild();
+  private void snapToActive() {
     if (mActive == null) {
       return;
     }
-    int center = mCenter + getScrollX();
-    int x = mActive.getLeft() + mActive.getWidth() / 2;
-    //Log.d("CSP", "before, x=" + getScrollX() + ", center=" + mCenter);
-    scrollTo(x, 0);
-    //Log.d("CSP", "after, x=" + getScrollX() + ", center=" + mCenter);
+    int x = mActive.getLeft() + (mActive.getWidth() / 2) - mCenter;
+    slideTo(x);
   }
 
-  /*
   private void fling(float velocityX, float velocityY) {
-    ChapterView currentChapterView = getCurrentChapterView();
-    currentChapterView.getSlider().stopScroller();
-    Scroller scroller = currentChapterView.getSlider().getScroller();
-    scroller.fling(currentChapterView.getScrollX(), 0, (int) velocityX, (int) velocityY, 0, currentChapterView.getContentSize(), 0, 0);
-    int originalX = scroller.getFinalX();
-    int initialPage = currentChapterView.getPage();
-    int destinationPage = (int) (originalX / getNormalizedWidth());
-    int pageDelta = Math.abs(initialPage - destinationPage);
-    if (pageDelta == 0) {
-      destinationPage = (int) (initialPage + Math.signum(velocityX));
-      pageDelta = 1;
+    // positive is going right to left (toward start), negative is left to right (toward end)
+    Log.d("CSP", "fling, vx=" + velocityX);
+    mScroller.fling(getScrollX(), 0, (int) -velocityX, (int) -velocityY, 0, computeHorizontalScrollRange(), 0, 0);
+    int originalX = mScroller.getFinalX();
+    int count = mLinearLayout.getChildCount();
+    View target = null;
+    for (int i = 0; i < count; i++) {
+      View child = mLinearLayout.getChildAt(i);
+      if (child.getLeft() <= originalX && child.getRight() >= originalX) {
+        Log.d("CSP", "found child at " + i);
+        if (child == mActive) {
+          Log.d("CSP", "child is the active, move one place to left or right");
+          int offset = (int) (i - Math.signum(velocityX));
+          Log.d("CSP", "active is at " + i + ", move to " + offset);
+          offset = Math.min(offset, count -1);
+          offset = Math.max(offset, 0);
+          child = mLinearLayout.getChildAt(offset);
+        }
+        target = child;
+        break;
+      }
     }
-    currentChapterView.setPage(destinationPage);
-    double actualX = currentChapterView.getCurrentPagePosition();
-    int originalDistance = Math.abs(originalX - currentChapterView.getScrollX());
-    double actualDistance = Math.abs(actualX - currentChapterView.getScrollX());
-    double percent = actualDistance / originalDistance;
-    int duration = (int) (percent * scroller.getDuration());
-    int maximumPermissibleDuration = pageDelta * MAXIMUM_TRANSITION_DURATION_PER_PAGE;
-    duration = Math.min(duration, maximumPermissibleDuration);
-    scroller.extendDuration(duration);
-    scroller.setFinalX((int) actualX);
-    ViewCompat.postInvalidateOnAnimation(currentChapterView);
+
+    if (target == null) {
+      Log.d("CSP", "did NOT find child, use first or last");
+      int position = Math.signum(velocityX) == 1 ? 0 : (count - 1);
+      target = mLinearLayout.getChildAt(position);
+    }
+    int x = target.getLeft() + (target.getWidth() / 2) - mCenter;
+    Log.d("CSP", "target center is " + x);
+    mScroller.setFinalX(x);
+    ViewCompat.postInvalidateOnAnimation(this);
   }
-  */
 
   private class FlingListener extends GestureDetector.SimpleOnGestureListener {
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-      return super.onFling(e1, e2, velocityX, velocityY);
+      fling(velocityX, velocityY);
+      return true;
     }
   }
 }
