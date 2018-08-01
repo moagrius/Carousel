@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
@@ -16,7 +18,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Scroller;
 
@@ -25,11 +26,15 @@ import java.io.InputStream;
 
 public class CenterScalingPager extends HorizontalScrollView {
 
+  private static final int MOVING_TOWARD_START = -1;
+  private static final int MOVING_TOWARD_END = 1;
+
   private LinearLayout mLinearLayout;
   private GestureDetector mGestureDetector;
   private Scroller mScroller;
-  private ImageView mActive;
+  private View mActive;
   private int mCenter;
+  private float mLastKnownDirection;
 
   public CenterScalingPager(@NonNull Context context) {
     this(context, null);
@@ -46,16 +51,22 @@ public class CenterScalingPager extends HorizontalScrollView {
     mGestureDetector = new GestureDetector(context, new FlingListener());
     mLinearLayout = new LinearLayout(context);
     mLinearLayout.setClipToPadding(false);
+    mLinearLayout.setClipChildren(false);
     LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     lp.topMargin = 200;
     addView(mLinearLayout, lp);
     LayoutInflater inflater = LayoutInflater.from(context);
+    Resources resources = getResources();
     for (int i = 1; i < 10; i++) {
-      ImageView imageView = (ImageView) inflater.inflate(R.layout.cell_horizontal_pager, mLinearLayout, false);
+      View view = inflater.inflate(R.layout.cell_horizontal_pager, mLinearLayout, false);
       Bitmap bitmap = getBitmapFromAssets(i + ".jpg");
-      imageView.setImageBitmap(bitmap);
-      setImageSize(imageView, bitmap);
-      mLinearLayout.addView(imageView);
+      if (bitmap == null) {
+        continue;
+      }
+      Drawable drawable = new BitmapDrawable(resources, bitmap);
+      view.setBackground(drawable);
+      setImageSize(view, bitmap);
+      mLinearLayout.addView(view);
     }
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
   }
@@ -97,6 +108,7 @@ public class CenterScalingPager extends HorizontalScrollView {
   @Override
   protected void onScrollChanged(int l, int t, int oldl, int oldt) {
     super.onScrollChanged(l, t, oldl, oldt);
+    mLastKnownDirection = Math.signum(oldl - l);
     updateActiveChild();
   }
 
@@ -166,6 +178,7 @@ public class CenterScalingPager extends HorizontalScrollView {
     mActive.setScaleY(scale);
     //mActive.bringToFront();
     float wider = (width * scale) - width;
+    setTranslationX(offsetX);
     float widerHalf = wider * 0.5f;
     boolean isOnRightOfActive = false;
     // TODO: infinite loop!
@@ -177,17 +190,17 @@ public class CenterScalingPager extends HorizontalScrollView {
         continue;
       }
       float offset = isOnRightOfActive ? widerHalf : -widerHalf;
-     // child.setTranslationX(offset);
+      child.setTranslationX(offset);
     }
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
   }
 
-  private ImageView findCenterMostChild() {
+  private View findCenterMostChild() {
     int center = mCenter + getScrollX();
     for (int i = 0; i < mLinearLayout.getChildCount(); i++) {
       View child = mLinearLayout.getChildAt(i);
       if (child.getLeft() < center && child.getRight() > center) {
-        return (ImageView) child;
+        return child;
       }
     }
     return null;
