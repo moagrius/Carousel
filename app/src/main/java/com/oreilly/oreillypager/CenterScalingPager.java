@@ -1,6 +1,7 @@
 package com.oreilly.oreillypager;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
@@ -8,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -45,12 +47,14 @@ public class CenterScalingPager extends HorizontalScrollView {
     mLinearLayout = new LinearLayout(context);
     mLinearLayout.setClipToPadding(false);
     LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    lp.topMargin = 200;
     addView(mLinearLayout, lp);
     LayoutInflater inflater = LayoutInflater.from(context);
     for (int i = 1; i < 10; i++) {
       ImageView imageView = (ImageView) inflater.inflate(R.layout.cell_horizontal_pager, mLinearLayout, false);
       Bitmap bitmap = getBitmapFromAssets(i + ".jpg");
       imageView.setImageBitmap(bitmap);
+      setImageSize(imageView, bitmap);
       mLinearLayout.addView(imageView);
     }
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
@@ -106,6 +110,21 @@ public class CenterScalingPager extends HorizontalScrollView {
     }
   }
 
+  private int getPixelsFromDpi(int dpi) {
+    Resources resources = getResources();
+    return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpi, resources.getDisplayMetrics());
+  }
+
+  private void setImageSize(View view, Bitmap bitmap) {
+    int height = getPixelsFromDpi(120);
+    float scale = height / (float) bitmap.getHeight();
+    int width = (int) (bitmap.getWidth() * scale);
+    MarginLayoutParams lp = (MarginLayoutParams) view.getLayoutParams();
+    lp.width = width;
+    lp.height = height;
+    view.setLayoutParams(lp);
+  }
+
   private void slideTo(int x) {
     if (mActive == null) {
       return;
@@ -129,6 +148,7 @@ public class CenterScalingPager extends HorizontalScrollView {
     }
     mActive.setScaleX(1);
     mActive.setScaleY(1);
+    mActive.setTranslationX(0);
   }
 
   private void decorateActiveChild() {
@@ -153,10 +173,11 @@ public class CenterScalingPager extends HorizontalScrollView {
       View child = mLinearLayout.getChildAt(i);
       if (child == mActive) {
         isOnRightOfActive = true;
+        mActive.setTranslationX(0);
         continue;
       }
       float offset = isOnRightOfActive ? widerHalf : -widerHalf;
-      child.setTranslationX(offset);
+     // child.setTranslationX(offset);
     }
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
   }
