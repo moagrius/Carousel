@@ -135,6 +135,7 @@ public class CenterScalingPager extends HorizontalScrollView {
     if (mActive == null) {
       return;
     }
+    mLinearLayout.removeOnLayoutChangeListener(mOnLayoutChangeListener);
     int width = mActive.getMeasuredWidth();
     int center = mCenter + getScrollX();
     float half = width * 0.5f;
@@ -143,7 +144,7 @@ public class CenterScalingPager extends HorizontalScrollView {
     float scale = 1 + (1 - (distance / half));
     mActive.setScaleX(scale);
     mActive.setScaleY(scale);
-    mActive.bringToFront();
+    //mActive.bringToFront();
     float wider = (width * scale) - width;
     float widerHalf = wider * 0.5f;
     boolean isOnRightOfActive = false;
@@ -157,6 +158,7 @@ public class CenterScalingPager extends HorizontalScrollView {
       float offset = isOnRightOfActive ? widerHalf : -widerHalf;
       child.setTranslationX(offset);
     }
+    mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
   }
 
   private ImageView findCenterMostChild() {
