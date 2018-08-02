@@ -19,11 +19,20 @@
       <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:letterSpacing="1.05"
+          android:letterSpacing="0.2"
           android:text="TRENDING >"
-          android:textColor="#FF888888"
+          android:textColor="#FF555555"
           android:textSize="18sp"
           android:textStyle="bold" />
+
+      <TextView
+          android:id="@+id/textview_trendin_description"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:lineSpacingMultiplier="1.2"
+          android:text="See what skills others are master.  Explore our most popular titles and classes."
+          android:textColor="#FF888888"
+          android:textSize="16sp" />
 
       <com.oreilly.oreillypager.CenterScalingPager
           android:id="@+id/centerscalingpager_trending"
@@ -35,9 +44,9 @@
       <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:letterSpacing="1.05"
+          android:letterSpacing="0.2"
           android:text="RECOMMENDED FOR YOU >"
-          android:textColor="#FF888888"
+          android:textColor="#FF555555"
           android:textSize="18sp"
           android:textStyle="bold" />
 
@@ -45,10 +54,10 @@
           android:id="@+id/textview_recommended_description"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:lineSpacingMultiplier="1.3"
+          android:lineSpacingMultiplier="1.2"
           android:text="We recommend titles you\'ll love, based on your interests."
-          android:textColor="#FFDDDDDD"
-          android:textSize="14sp" />
+          android:textColor="#FF888888"
+          android:textSize="16sp" />
 
       <com.oreilly.oreillypager.CenterScalingPager
           android:id="@+id/centerscalingpager_recommended"
@@ -60,9 +69,9 @@
       <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:letterSpacing="1.05"
+          android:letterSpacing="0.2"
           android:text="RECENTLY ADDED >"
-          android:textColor="#FF888888"
+          android:textColor="#FF555555"
           android:textSize="18sp"
           android:textStyle="bold" />
 
@@ -70,10 +79,10 @@
           android:id="@+id/textview_recents_description"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:lineSpacingMultiplier="1.3"
+          android:lineSpacingMultiplier="1.2"
           android:text="Never miss a release. View all the latest titles from the topics you follow"
-          android:textColor="#FFDDDDDD"
-          android:textSize="14sp" />
+          android:textColor="#FF888888"
+          android:textSize="16sp" />
 
       <com.oreilly.oreillypager.CenterScalingPager
           android:id="@+id/centerscalingpager_recent"
@@ -83,7 +92,7 @@
           android:layout_height="match_parent" />
 
     </LinearLayout>
-    
+
   </ScrollView>
 
   <!-- info window -->
@@ -141,7 +150,7 @@
             android:lineSpacingMultiplier="1.3"
             android:text="@string/lorem"
             android:textColor="#FF222222"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
 
       </LinearLayout>
 
