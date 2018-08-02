@@ -1,5 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.oreilly.oreillypager.CenterScalingPager
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+
+  <!-- visible ui -->
+
+  <ScrollView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:letterSpacing="1.05"
+          android:text="TRENDING >"
+          android:textColor="#FF888888"
+          android:textSize="18sp"
+          android:textStyle="bold" />
+
+      <com.oreilly.oreillypager.CenterScalingPager
+          android:id="@+id/centerscalingpager_trending"
+          android:layout_marginBottom="8dp"
+          android:layout_marginTop="8dp"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent" />
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:letterSpacing="1.05"
+          android:text="RECOMMENDED FOR YOU >"
+          android:textColor="#FF888888"
+          android:textSize="18sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:id="@+id/textview_recommended_description"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:lineSpacingMultiplier="1.3"
+          android:text="We recommend titles you\'ll love, based on your interests."
+          android:textColor="#FFDDDDDD"
+          android:textSize="14sp" />
+
+      <com.oreilly.oreillypager.CenterScalingPager
+          android:id="@+id/centerscalingpager_recommended"
+          android:layout_marginBottom="8dp"
+          android:layout_marginTop="8dp"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent" />
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:letterSpacing="1.05"
+          android:text="RECENTLY ADDED >"
+          android:textColor="#FF888888"
+          android:textSize="18sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:id="@+id/textview_recents_description"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:lineSpacingMultiplier="1.3"
+          android:text="Never miss a release. View all the latest titles from the topics you follow"
+          android:textColor="#FFDDDDDD"
+          android:textSize="14sp" />
+
+      <com.oreilly.oreillypager.CenterScalingPager
+          android:id="@+id/centerscalingpager_recent"
+          android:layout_marginBottom="8dp"
+          android:layout_marginTop="8dp"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent" />
+
+    </LinearLayout>
+    
+  </ScrollView>
+
+  <!-- info window -->
+
+  <FrameLayout
+      android:id="@+id/framelayout_overlay"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="#CCFFFFFF"
+      android:visibility="gone">
+
+    <FrameLayout
+        android:id="@+id/framelayout_card"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="60dp"
+        android:background="#FFFFFFFF"
+        android:clipChildren="false"
+        android:elevation="10dp">
+
+      <ImageView
+          android:id="@+id/imageview_overflow"
+          android:layout_width="wrap_content"
+          android:layout_height="24dp"
+          android:layout_gravity="end"
+          android:layout_margin="20dp"
+          android:src="@drawable/ic_overflow" />
+
+      <LinearLayout
+          android:id="@+id/linearlayout_card_items"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:layout_margin="20dp"
+          android:clipChildren="false"
+          android:orientation="vertical"
+          android:paddingTop="145dp">
+
+        <TextView
+            android:id="@+id/textview_card_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9sp"
+            android:text="This is some book title"
+            android:textColor="#FF222222"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/textview_card_description"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:lineSpacingMultiplier="1.3"
+            android:text="@string/lorem"
+            android:textColor="#FF222222"
+            android:textSize="14sp" />
+
+      </LinearLayout>
+
+    </FrameLayout>
+
+    <FrameLayout android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center_horizontal"
+                 android:layout_marginTop="40dp"
+                 android:background="#FFFFFFFF"
+                 android:elevation="20dp">
+      <ImageView
+          android:id="@+id/imageview_card_thumb"
+          android:layout_width="wrap_content"
+          android:layout_height="175dp"
+          android:adjustViewBounds="true" />
+    </FrameLayout>
+
+
+  </FrameLayout>
+
+</FrameLayout>

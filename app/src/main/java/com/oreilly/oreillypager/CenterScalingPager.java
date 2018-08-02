@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,12 +24,14 @@ import java.io.InputStream;
 
 public class CenterScalingPager extends HorizontalScrollView {
 
+  private static final float SCALE_ADJUSTMENT = 0.25f;
+
+  private OnClickListener mCellClickListener;
   private LinearLayout mLinearLayout;
   private GestureDetector mGestureDetector;
   private Scroller mScroller;
   private View mActive;
   private int mCenter;
-  private float mLastKnownDirection;
 
   public CenterScalingPager(@NonNull Context context) {
     this(context, null);
@@ -47,7 +50,6 @@ public class CenterScalingPager extends HorizontalScrollView {
     mLinearLayout.setClipToPadding(false);
     mLinearLayout.setClipChildren(false);
     LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-    lp.topMargin = 100;
     addView(mLinearLayout, lp);
     LayoutInflater inflater = LayoutInflater.from(context);
     for (int i = 1; i < 10; i++) {
@@ -57,12 +59,40 @@ public class CenterScalingPager extends HorizontalScrollView {
         continue;
       }
       cell.setImageBitmap(bitmap);
+      cell.setOnClickListener(mClickListener);
       mLinearLayout.addView(cell);
     }
     // remove left margin from first cell, right margin from last cell
     ((MarginLayoutParams) mLinearLayout.getChildAt(0).getLayoutParams()).leftMargin = 0;
     ((MarginLayoutParams) mLinearLayout.getChildAt(mLinearLayout.getChildCount() - 1).getLayoutParams()).rightMargin = 0;
     mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
+    post(this::scrollToCenter);
+  }
+
+  private View.OnClickListener mClickListener = new View.OnClickListener(){
+    @Override
+    public void onClick(View v) {
+      if (mCellClickListener != null) {
+        mCellClickListener.onClick(v);
+      }
+    }
+  };
+
+  public void setCellClickListener(OnClickListener cellClickListener) {
+    mCellClickListener = cellClickListener;
+  }
+
+  public void scrollToChild(View child) {
+    mActive = child;
+    snapToActive(false);
+  }
+
+  public void scrollToPosition(int position) {
+    scrollToChild(mLinearLayout.getChildAt(position));
+  }
+
+  public void scrollToCenter() {
+    scrollToPosition(mLinearLayout.getChildCount() / 2);
   }
 
   private Bitmap getBitmapFromAssets(String name) {
@@ -94,9 +124,14 @@ public class CenterScalingPager extends HorizontalScrollView {
   }
 
   @Override
+  protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    super.onLayout(changed, l, t, r, b);
+    updateActiveChild();
+  }
+
+  @Override
   protected void onScrollChanged(int l, int t, int oldl, int oldt) {
     super.onScrollChanged(l, t, oldl, oldt);
-    mLastKnownDirection = Math.signum(oldl - l);
     updateActiveChild();
   }
 
@@ -141,22 +176,19 @@ public class CenterScalingPager extends HorizontalScrollView {
     if (mActive == null) {
       return;
     }
-    mLinearLayout.removeOnLayoutChangeListener(mOnLayoutChangeListener);
     int width = mActive.getMeasuredWidth();
     int center = mCenter + getScrollX();
     float half = width * 0.5f;
     float middle = mActive.getLeft() + half;
     float distance = Math.abs(middle - center);
-    float scale = 1 + ((1 - (distance / half)) / 2);
+    float percent = 1 - (distance / half);
+    Log.d("CSP", "percent from center: " + percent);
+    float scale = 1 + SCALE_ADJUSTMENT * percent;
     mActive.setScaleX(scale);
     mActive.setScaleY(scale);
-    //mActive.bringToFront();
-    ViewCompat.setElevation(mActive, 60 * (scale - 1));
-    float wider = (width * scale) - width;
-    float widerHalf = wider * 0.5f;
-    boolean isOnRightOfActive = false;
-    // TODO: infinite loop!
-    mLinearLayout.addOnLayoutChangeListener(mOnLayoutChangeListener);
+    float pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, getResources().getDisplayMetrics());
+    float elevation = pixels * percent;
+    ViewCompat.setElevation(mActive, elevation);
   }
 
   private View findCenterMostChild() {
@@ -180,18 +212,25 @@ public class CenterScalingPager extends HorizontalScrollView {
       View lastChild = mLinearLayout.getChildAt(mLinearLayout.getChildCount() - 1);
       int paddingLeft = mCenter - (firstChild.getWidth() / 2);
       int paddingRight = mCenter - (lastChild.getWidth() / 2);
-      int paddingY = child.getHeight() *
-      // TODO: the 300's should be the amount of space the image could possible scale past
-      mLinearLayout.setPadding(paddingLeft, 300, paddingRight, 300);
+      int paddingY = (int) (firstChild.getHeight() * SCALE_ADJUSTMENT);
+      mLinearLayout.setPadding(paddingLeft, paddingY, paddingRight, paddingY);
     }
   };
 
   private void snapToActive() {
+    snapToActive(false);
+  }
+
+  private void snapToActive(boolean immediate) {
     if (mActive == null) {
       return;
     }
     int x = mActive.getLeft() + (mActive.getWidth() / 2) - mCenter;
-    slideTo(x);
+    if (immediate) {
+      scrollTo(x, 0);
+    } else {
+      slideTo(x);
+    }
   }
 
   private void fling(float velocityX, float velocityY) {

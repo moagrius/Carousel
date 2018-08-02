@@ -1,3 +1,7 @@
 <resources>
   <string name="app_name">OreillyPager</string>
+  <string name="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ultricies mi nisl, eget fringilla urna posuere eget. Phasellus tincidunt a est ut venenatis. Ut risus felis, aliquet vitae nibh non, mollis hendrerit ipsum. Praesent sit amet viverra mauris, ac ullamcorper felis. Morbi blandit at risus et iaculis. Nunc fringilla, nibh at pellentesque tincidunt, magna ante rhoncus ex, ac efficitur lectus mi ac orci. Vivamus magna nisl, viverra vestibulum arcu in, eleifend pulvinar magna.
+
+    Nulla ut convallis turpis. Phasellus blandit gravida mauris et tristique. Duis at dolor tellus. Phasellus iaculis eros a consectetur laoreet. Suspendisse sit amet nulla quis tortor congue tincidunt a id augue. Morbi mi augue, suscipit tincidunt feugiat quis, viverra sed justo. Cras vehicula orci tortor, quis tempor elit cursus pharetra. Donec condimentum iaculis luctus.
+  </string>
 </resources>
