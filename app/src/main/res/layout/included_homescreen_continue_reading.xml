@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginBottom="32dp"
+              android:layout_marginTop="32dp"
+              android:orientation="vertical">
+
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:letterSpacing="0.2"
+      android:text="RECENT ACTIVITY"
+      android:textColor="#FF555555"
+      android:textSize="18sp"
+      android:textStyle="bold" />
+
+  <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:paddingTop="24dp"
+      android:paddingBottom="24dp"
+      android:paddingLeft="16dp"
+      android:paddingRight="16dp"
+      android:gravity="bottom"
+      android:background="#FF444444">
+
+    <ImageView
+        android:id="@+id/imageview_continue_reading_thumb"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:elevation="10dp"
+        android:background="#FF000000"
+        android:adjustViewBounds="true" />
+
+    <!-- holds title and progress bar -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="8dp" >
+
+      <TextView
+          android:id="@+id/textview_continue_reading_title"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginBottom="8dp"
+          android:text="Continue: Some Book"
+          android:textColor="#FFFFFFFF"
+          android:textSize="18sp" />
+
+      <!-- progressbar and label -->
+      <LinearLayout
+          android:orientation="horizontal"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content">
+
+        <ProgressBar
+            android:id="@+id/progressbar_continue_reading"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="80" />
+
+        <TextView
+            android:id="@+id/textview_progress_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="80%"
+            android:textColor="#FFFFFFFF"
+            android:textSize="18sp" />
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageview_continue_reading"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_continue_reading" />
+
+  </LinearLayout>
+
+</LinearLayout>

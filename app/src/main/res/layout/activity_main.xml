@@ -14,6 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:clipToPadding="false"
+        android:clipChildren="false"
         android:padding="16dp">
 
       <TextView
@@ -40,6 +42,12 @@
           android:layout_marginTop="8dp"
           android:layout_width="match_parent"
           android:layout_height="match_parent" />
+
+      <!-- continue reading -->
+
+      <include layout="@layout/included_homescreen_continue_reading" />
+
+      <!-- end continue reading -->
 
       <TextView
           android:layout_width="match_parent"
